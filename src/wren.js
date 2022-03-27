@@ -4,9 +4,9 @@ let Module;
 
 export async function load() {
 	if (!Module) {
+		Module = {};
 		Module = await moduleFactory();
 		Module._VMs = {};
-		Module._values = [];
 	}
 }
 
@@ -46,16 +46,18 @@ export class VM {
 			bindForeignClassFn  : defaultBindForeignClassFn,
 			writeFn             : defaultWriteFn,
 			errorFn             : defaultErrorFn,
-		}
+		};
+
 		this.config = Object.assign(defaultConfig, config);
 
-		this._pointer = Module.ccall('shimNewVM',
+		/** Pointer to C VM. */
+		this._ptr = Module.ccall('shimNewVM',
 			'number',
 			[],
 			[]
 		);
 
-		Module._VMs[this._pointer] = this;
+		Module._VMs[this._ptr] = this;
 
 		/** Write buffer. Flushed whenever we get a newline. */
 		this._wb = "";
@@ -158,17 +160,17 @@ export class VM {
 		Module.ccall('wrenFreeVM',
 			null,
 			['number'],
-			[this._pointer]
+			[this._ptr]
 		);
-		delete Module._VMs[this._pointer]
-		this._pointer = undefined;
+		delete Module._VMs[this._ptr]
+		this._ptr = undefined;
 	}
 
 	collectGarbage() {
 		Module.ccall('wrenCollectGarbage',
 			null,
 			['number'],
-			[this._pointer]
+			[this._ptr]
 		);
 	}
 
@@ -176,7 +178,7 @@ export class VM {
 		return Module.ccall('wrenInterpret',
 			'number',
 			['number', 'string', 'string'],
-			[this._pointer, moduleName, src]
+			[this._ptr, moduleName, src]
 		);
 	}
 
@@ -184,7 +186,7 @@ export class VM {
 		return Module.ccall('wrenMakeCallHandle',
 			'number',
 			['number', 'string'],
-			[this._pointer, signature]
+			[this._ptr, signature]
 		);
 	}
 
@@ -192,7 +194,7 @@ export class VM {
 		let result = Module.ccall('wrenCall',
 			'number',
 			['number', 'number'],
-			[this._pointer, method]
+			[this._ptr, method]
 		);
 
 		return result;
@@ -202,7 +204,7 @@ export class VM {
 		Module.ccall('wrenReleaseHandle',
 			null,
 			['number', 'number'],
-			[this._pointer, handle]
+			[this._ptr, handle]
 		);
 	}
 
@@ -211,7 +213,7 @@ export class VM {
 		return Module.ccall('wrenGetSlotCount',
 			'number',
 			['number'],
-			[this._pointer]
+			[this._ptr]
 		);
 	}
 
@@ -219,7 +221,7 @@ export class VM {
 		Module.ccall('wrenEnsureSlots',
 			null,
 			['number', 'number'],
-			[this._pointer, numSlots]
+			[this._ptr, numSlots]
 		);
 	}
 
@@ -227,7 +229,7 @@ export class VM {
 		return Module.ccall('wrenGetSlotType',
 			'number',
 			['number', 'number'],
-			[this._pointer, slot]
+			[this._ptr, slot]
 		);
 	}
 
@@ -235,7 +237,7 @@ export class VM {
 		return Module.ccall('wrenGetSlotBool',
 			'boolean',
 			['number', 'number'],
-			[this._pointer, slot]
+			[this._ptr, slot]
 		);
 	}
 
@@ -243,7 +245,7 @@ export class VM {
 		let ptr = Module.ccall('wrenGetSlotBytes',
 			'number',
 			['number', 'number', 'number'],
-			[this._pointer, slot, length]
+			[this._ptr, slot, length]
 		);
 
 		return new Uint8Array(this.heap, ptr, length);
@@ -253,7 +255,7 @@ export class VM {
 		return Module.ccall('wrenGetSlotDouble',
 			'number',
 			['number', 'number'],
-			[this._pointer, slot]
+			[this._ptr, slot]
 		);
 	}
 
@@ -261,7 +263,7 @@ export class VM {
 		return Module.ccall('wrenGetSlotForeign',
 			'number',
 			['number', 'number'],
-			[this._pointer, slot]
+			[this._ptr, slot]
 		);
 	}
 
@@ -269,7 +271,7 @@ export class VM {
 		return Module.ccall('wrenGetSlotString',
 			'string',
 			['number', 'number'],
-			[this._pointer, slot]
+			[this._ptr, slot]
 		);
 	}
 
@@ -277,7 +279,7 @@ export class VM {
 		return Module.ccall('wrenGetSlotHandle',
 			'number',
 			['number', 'number'],
-			[this._pointer, slot]
+			[this._ptr, slot]
 		);
 	}
 
@@ -285,7 +287,7 @@ export class VM {
 		Module.ccall('wrenSetSlotBool',
 			null,
 			['number', 'number', 'boolean'],
-			[this._pointer, slot, value]
+			[this._ptr, slot, value]
 		);
 	}
 
@@ -293,7 +295,7 @@ export class VM {
 		Module.ccall('wrenSetSlotBytes',
 			null,
 			['number', 'number', 'array', 'number'],
-			[this._pointer, slot, bytes, length]
+			[this._ptr, slot, bytes, length]
 		);
 	}
 
@@ -301,7 +303,7 @@ export class VM {
 		Module.ccall('wrenSetSlotDouble',
 			null,
 			['number', 'number', 'number'],
-			[this._pointer, slot, value]
+			[this._ptr, slot, value]
 		);
 	}
 
@@ -309,7 +311,7 @@ export class VM {
 		return Module.ccall('wrenSetSlotNewForeign',
 			'number',
 			['number', 'number', 'number', 'number'],
-			[this._pointer, slot, classSlot, size]
+			[this._ptr, slot, classSlot, size]
 		);
 	}
 
@@ -317,7 +319,7 @@ export class VM {
 		Module.ccall('wrenSetSlotNewList',
 			null,
 			['number', 'number'],
-			[this._pointer, slot]
+			[this._ptr, slot]
 		);
 	}
 
@@ -325,7 +327,7 @@ export class VM {
 		Module.ccall('wrenSetSlotNewMap',
 			null,
 			['number', 'number'],
-			[this._pointer, slot]
+			[this._ptr, slot]
 		);
 	}
 
@@ -333,7 +335,7 @@ export class VM {
 		Module.ccall('wrenSetSlotNull',
 			null,
 			['number', 'number'],
-			[this._pointer, slot]
+			[this._ptr, slot]
 		);
 	}
 
@@ -341,7 +343,7 @@ export class VM {
 		Module.ccall('wrenSetSlotString',
 			null,
 			['number', 'number', 'string'],
-			[this._pointer, slot, text]
+			[this._ptr, slot, text]
 		);
 	}
 
@@ -349,7 +351,7 @@ export class VM {
 		Module.ccall('wrenSetSlotHandle',
 			null,
 			['number', 'number', 'number'],
-			[this._pointer, slot, handle]
+			[this._ptr, slot, handle]
 		);
 	}
 
@@ -357,7 +359,7 @@ export class VM {
 		return Module.ccall('wrenGetListCount',
 			'number',
 			['number', 'number'],
-			[this._pointer, slot]
+			[this._ptr, slot]
 		);
 	}
 
@@ -365,7 +367,7 @@ export class VM {
 		Module.ccall('wrenGetListElement',
 			null,
 			['number', 'number', 'number', 'number'],
-			[this._pointer, listSlot, index, elementSlot]
+			[this._ptr, listSlot, index, elementSlot]
 		);
 	}
 
@@ -373,7 +375,7 @@ export class VM {
 		Module.ccall('wrenSetListElement',
 			null,
 			['number', 'number', 'number', 'number'],
-			[this._pointer, listSlot, index, elementSlot]
+			[this._ptr, listSlot, index, elementSlot]
 		);
 	}
 
@@ -381,7 +383,7 @@ export class VM {
 		Module.ccall('wrenInsertInList',
 			null,
 			['number', 'number', 'number', 'number'],
-			[this._pointer, listSlot, index, elementSlot]
+			[this._ptr, listSlot, index, elementSlot]
 		);
 	}
 
@@ -389,7 +391,7 @@ export class VM {
 		return Module.ccall('wrenGetMapCount',
 			'number',
 			['number', 'number'],
-			[this._pointer, slot]
+			[this._ptr, slot]
 		);
 	}
 
@@ -397,7 +399,7 @@ export class VM {
 		return Module.ccall('wrenGetMapContainsKey',
 			'boolean',
 			['number', 'number', 'number'],
-			[this._pointer, mapSlot, keySlot]
+			[this._ptr, mapSlot, keySlot]
 		);
 	}
 
@@ -405,7 +407,7 @@ export class VM {
 		Module.ccall('wrenGetMapValue',
 			null,
 			['number', 'number', 'number', 'number'],
-			[this._pointer, mapSlot, keySlot, valueSlot]
+			[this._ptr, mapSlot, keySlot, valueSlot]
 		);
 	}
 
@@ -413,7 +415,7 @@ export class VM {
 		Module.ccall('wrenSetMapValue',
 			null,
 			['number', 'number', 'number', 'number'],
-			[this._pointer, mapSlot, keySlot, valueSlot]
+			[this._ptr, mapSlot, keySlot, valueSlot]
 		);
 	}
 
@@ -421,7 +423,7 @@ export class VM {
 		Module.ccall('wrenRemoveMapValue',
 			null,
 			['number', 'number', 'number', 'number'],
-			[this._pointer, mapSlot, keySlot, removedValueSlot]
+			[this._ptr, mapSlot, keySlot, removedValueSlot]
 		);
 	}
 
@@ -429,7 +431,7 @@ export class VM {
 		Module.ccall('wrenGetVariable',
 			null,
 			['number', 'string', 'string', 'number'],
-			[this._pointer, moduleName, name, slot]
+			[this._ptr, moduleName, name, slot]
 		);
 	}
 
@@ -437,7 +439,7 @@ export class VM {
 		return Module.ccall('wrenHasVariable',
 			'boolean',
 			['number', 'string', 'string'],
-			[this._pointer, moduleName, name]
+			[this._ptr, moduleName, name]
 		);
 	}
 
@@ -450,7 +452,7 @@ export class VM {
 		return Module.ccall('wrenHasModule',
 			'boolean',
 			['number', 'string'],
-			[this._pointer, moduleName]
+			[this._ptr, moduleName]
 		);
 	}
 
@@ -463,7 +465,7 @@ export class VM {
 		Module.ccall('wrenAbortFiber',
 			null,
 			['number', 'number'],
-			[this._pointer, slot]
+			[this._ptr, slot]
 		);
 	}
 }
