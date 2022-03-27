@@ -2,24 +2,19 @@
   "name": "wrenjs",
   "version": "0.4.0",
   "description": "Using emscripten to transpile the wren programming language to Javascript.",
-  "main": "out/wren.min.js",
+  "main": "out/wren.js",
   "scripts": {
     "test": "deno run --allow-read ./test/test.mjs"
   },
-  "directories": {
-    "example": "examples"
-  },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ppvk/wrenjs.git"
+    "url": "git+https://github.com/lucatrn/wrenjs.git"
   },
   "author": "Paul VanKeuren and friends",
   "license": "MIT",
-  "homepage": "https://github.com/ppvk/wrenjs#readme",
+  "homepage": "https://github.com/lucatrn/wrenjs#readme",
   "devDependencies": {
-    "jsdoc": "^3.6.7",
-    "minami": "^1.2.3",
     "rollup": "^2.52.1",
-    "uglify-js": "^3.13.9"
+    "terser": "^5.12.1"
   }
 }

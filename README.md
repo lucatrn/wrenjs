@@ -1,27 +1,45 @@
-Using [emscripten](https://emscripten.org/)
-to transpile Bob Nystrom's [wren](http:wren.io) programming language to Javascript.
+# WrenJS
 
-wren: 0.4.0 | emscripten: 2.0.21
+Using [emscripten](https://emscripten.org/) to transpile Bob Nystrom's [wren](http:wren.io) programming language to Javascript (version 0.4.0).
 
+## Example
 
+```js
+import * as Wren from "./wren.js";
 
+await Wren.load();
 
+let vm = new Wren.VM();
 
+vm.interpret("main", `System.print("Hello world!")`);
+```
 
-# Build Instructions
+Most of Wren's C API is provided via the `VM` class.
 
-These instructions are for an Ubuntu-like system.
+## Documentation
 
-You will need:
-- build-essential
-- cmake
-- python2.7
-- python3
+The JavaScript API is documented by [wren.d.ts](src/wren.d.ts).
+
+For examples see [the example folder](example).
+
+## Build Instructions
+
+Supported platforms:
+
+- Windows
+- Mac
+- Ubuntu-like
+
+Required tools:
+
+- python
 - nodejs
-- java
-- deno
+- git
 
-After these are ready to go, run `./build.sh`
+### Mac / Ubuntu
 
-For a detailed explanation of what this bash script does,
-check out the comments in the file itself.
+Run `build.sh`.
+
+### Windows
+
+Run `build.bat`.

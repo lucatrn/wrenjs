@@ -2,4 +2,6 @@ wren
 emsdk
 .idea
 *~
+tmp
 node_modules
+out/wren.d.ts
