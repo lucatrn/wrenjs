@@ -43,6 +43,7 @@ call emcc -DWREN_OPT_RANDOM -DWREN_OPT_META ^
     -s INCOMING_MODULE_JS_API=[] -s DYNAMIC_EXECUTION=0 ^
     -s EXPORTED_RUNTIME_METHODS=["ccall","addFunction"] ^
     -s "EXPORTED_FUNCTIONS=%fn%" ^
+    --pre-js src/wren-asm-common.js ^
     -Werror --memory-init-file 0
 
 echo Building JavaScript

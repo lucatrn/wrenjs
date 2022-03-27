@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>wrenjs | foreign method</title>
+</head>
+<body>
+<script type="module">
+import * as Wren from "../out/wren.js";
+
+await Wren.load();
+
+let vm = self.vm = new Wren.VM({
+	bindForeignMethodFn: (mod, cls, isStatic, signature) => {
+		if (mod === "main" && cls === "Math" && isStatic && signature === "add(_,_)") {
+			return (vm) => {
+				let a = vm.getSlotDouble(1);
+				let b = vm.getSlotDouble(2);
+				vm.setSlotDouble(0, a + b);
+			};
+		}
+	}
+});
+
+vm.interpret("main", `
+class Math {
+  foreign static add(a, b)
+}
+
+System.print("Result: %(Math.add(7, 35))")
+`);
+</script>
+</body>
+</html>

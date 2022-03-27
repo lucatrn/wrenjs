@@ -10,7 +10,7 @@ import * as Wren from "../out/wren.js";
 
 await Wren.load();
 
-let vm = new Wren.VM();
+let vm = self.vm = new Wren.VM();
 
 vm.interpret("main", `System.print("Hello world!")`);
 </script>

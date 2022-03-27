@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>wrenjs | hello world</title>
+</head>
+<body>
+<script type="module">
+import * as Wren from "../out/wren.js";
+
+await Wren.load();
+
+let vm = self.vm = new Wren.VM({
+	// writeFn: (text) => console.log(`WREN: "${text}"`, text.length)
+	resolveModuleFn: (importer, name) => importer + "/dog/" + name,
+	loadModuleFn: (name) => {
+		return `System.print("Hello from ${name}")`;
+	}
+});
+
+vm.interpret("main", `
+import "home"
+
+System.print("This is from main!")
+`);
+</script>
+</body>
+</html>

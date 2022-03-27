@@ -1,6 +1,7 @@
 wren
 emsdk
 .idea
+.vscode
 *~
 tmp
 node_modules
