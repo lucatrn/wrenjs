@@ -63,6 +63,8 @@ void defaultAllocator(WrenVM* vm) {
 }
 
 WrenForeignClassMethods shimBindForeignClassFn(WrenVM* vm, const char* module, const char* className) {
+	// We need to get two pointers, so we'll pass a reference to the struct and
+	// set the pointers through JavaScript.
 	WrenForeignClassMethods result;
 	result.allocate = defaultAllocator;
 	result.finalize = NULL;
@@ -83,7 +85,7 @@ WrenForeignClassMethods shimBindForeignClassFn(WrenVM* vm, const char* module, c
 
 void shimWriteFn(WrenVM* vm, const char* text) {
 	EM_ASM({
-	  Module._VMs[$0]._write(UTF8ToString($1));
+		Module._VMs[$0]._write(UTF8ToString($1));
 	}, vm, text);
 }
 

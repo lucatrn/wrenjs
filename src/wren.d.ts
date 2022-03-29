@@ -355,7 +355,7 @@ export interface VMConfiguration {
 	bindForeignClassFn: (moduleName: string, className: string) => (ForeignClassMethods | null | undefined | void);
 
 	/**
-	 * Used to display text via `System.print()`.
+	 * Used to display text via `System.print()` and `System.write()` methods.
 	 * 
 	 * This function is called for each line in the output:
 	 * - `System.print()` = 1 line ("")
@@ -375,7 +375,7 @@ export interface VMConfiguration {
 	 * 
 	 * By default {@link VM} just prints the information via `console.warn()`.
 	 */
-	errorFn: (errorType: any, moduleName: any, line: any, msg: any) => void;
+	errorFn: (errorType: ErrorType, moduleName: string, line: number, message: string) => void;
 }
 
 /**
@@ -440,4 +440,11 @@ export enum Type {
 	UNKNOWN = 7,
 }
 
-type Handle = number;
+/**
+ * A handle/pointer to a Wren object.
+ * 
+ * This lets code outside of the VM hold a persistent reference to an object
+ * After a handle is acquired, and until it is released, this ensures the
+ * garbage collector will not reclaim the object it references.
+ */
+export type Handle = number;
