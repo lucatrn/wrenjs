@@ -309,6 +309,8 @@ export interface VMConfiguration {
 	 * Wren will take ownership of the string you return and free it for you, so
 	 * it should be allocated using the same allocation function you provide
 	 * above.
+	 * 
+	 * Defaults to the function `(importer, name) => name`.
 	 */
 	resolveModuleFn: (importer: string, name: string) => string;
 	
@@ -328,8 +330,10 @@ export interface VMConfiguration {
 	 * 
 	 * If a module with the given name could not be found by the embedder, it
 	 * should return `null` and Wren will report that as a runtime error.
+	 * 
+	 * By default this always returns `null`
 	 */
-	loadModuleFn: (name: string) => (string | null | undefined);
+	loadModuleFn: (name: string) => (string | Promise<string> | null | undefined);
 
 	/**
 	 * The callback Wren uses to find a foreign method and bind it to a class.
@@ -377,6 +381,11 @@ export interface VMConfiguration {
 	 */
 	errorFn: (errorType: ErrorType, moduleName: string, line: number, message: string) => void;
 }
+
+/**
+ * The default config used when constructing new {@link VM}s.
+ */
+export let defaultConfig: VMConfiguration;
 
 /**
  * A pair of functions to the foreign methods used to allocate and
@@ -448,3 +457,13 @@ export enum Type {
  * garbage collector will not reclaim the object it references.
  */
 export type Handle = number;
+
+export default {
+	load: load,
+	getVersionNumber: getVersionNumber,
+	ErrorType: ErrorType,
+	Result: Result,
+	Type: Type,
+	VM: VM,
+	defaultConfig: defaultConfig,
+};

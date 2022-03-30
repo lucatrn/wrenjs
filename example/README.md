@@ -1,5 +1,5 @@
 
-## Running HTML examples.
+## Running HTML examples locally.
 
 You will need a HTTP server to view HTML files, the `file:` protocol won't work.
 

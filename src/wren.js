@@ -39,16 +39,7 @@ export let Type = {
 
 export class VM {
 	constructor(config) {
-		let defaultConfig = {
-			resolveModuleFn     : defaultResolveModuleFn,
-			loadModuleFn        : defaultLoadModuleFn,
-			bindForeignMethodFn : defaultBindForeignMethodFn,
-			bindForeignClassFn  : defaultBindForeignClassFn,
-			writeFn             : defaultWriteFn,
-			errorFn             : defaultErrorFn,
-		};
-
-		this.config = Object.assign(defaultConfig, config);
+		this.config = Object.assign({}, defaultConfig, config);
 
 		/** Pointer to C VM. */
 		this._ptr = Module.ccall('shimNewVM',
@@ -66,7 +57,7 @@ export class VM {
 	get Module() { return Module; }
 	get heap() { return Module.HEAP8.buffer; }
 
-	// // Since these are aligned, are they guaranteed to work with Wren's memory?
+	// // Since these are memory aligned, are they guaranteed to work with Wren's memory?
 	// get getValue() { return Module.getValue; }
 	// get setValue() { return Module.setValue; }
 
@@ -470,6 +461,15 @@ export class VM {
 	}
 }
 
+export let defaultConfig = {
+	resolveModuleFn     : defaultResolveModuleFn,
+	loadModuleFn        : defaultLoadModuleFn,
+	bindForeignMethodFn : defaultBindForeignMethodFn,
+	bindForeignClassFn  : defaultBindForeignClassFn,
+	writeFn             : defaultWriteFn,
+	errorFn             : defaultErrorFn,
+};
+
 function defaultResolveModuleFn(importer, name) {
 	return name;
 }
@@ -491,13 +491,24 @@ function defaultWriteFn(line) {
 }
 
 function defaultErrorFn(errorType, moduleName, line, msg) {
-	let s = "WREN: ";
+	let s;
 	if (errorType === 0) {
-		s += "[" + moduleName + " line " + line + "] [Error] " + msg + "\n";
+		s = "[" + moduleName + " line " + line + "] [Error] " + msg + "\n";
 	} else if (errorType === 1) {
-		s += "[" + moduleName + " line " + line + "] in " + msg + "\n";
+		s = "[" + moduleName + " line " + line + "] in " + msg + "\n";
 	} else if (errorType === 2) {
-		s += "[Runtime Error] " + msg + "\n";
+		s = "[Runtime Error] " + msg + "\n";
 	}
-	console.error(s);
+	console.error("WREN: " + s);
+	return s;
 }
+
+export default {
+	load: load,
+	getVersionNumber: getVersionNumber,
+	ErrorType: ErrorType,
+	Result: Result,
+	Type: Type,
+	VM: VM,
+	defaultConfig: defaultConfig,
+};

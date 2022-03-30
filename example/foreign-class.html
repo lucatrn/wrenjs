@@ -3,10 +3,11 @@
 <head>
 	<meta charset="UTF-8">
 	<title>wrenjs | foreign class</title>
+	<link rel="stylesheet" href="example.css">
 </head>
 <body>
 <script type="module">
-import * as Wren from "../out/wren.js";
+import  Wren from "./wren.js";
 
 await Wren.load();
 
@@ -64,19 +65,19 @@ let vm = self.vm = new Wren.VM({
 });
 
 vm.interpret("main", `
-foreign class Bytes {
-  construct new(size) {}
+	foreign class Bytes {
+		construct new(size) {}
 
-  foreign setValue(index, value)
-}
+		foreign setValue(index, value)
+	}
 
-// Make 4 bytes and put some numbers in them.
-var b = Bytes.new(4)
-b.setValue(0, 1)
-b.setValue(1, 2)
-b.setValue(2, 3)
-b.setValue(3, 4)
-b = null
+	// Make 4 bytes and put some numbers in them.
+	var b = Bytes.new(4)
+	b.setValue(0, 1)
+	b.setValue(1, 2)
+	b.setValue(2, 3)
+	b.setValue(3, 4)
+	b = null
 `);
 
 // Trigger finalizer for our object.

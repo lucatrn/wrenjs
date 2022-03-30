@@ -3,10 +3,11 @@
 <head>
 	<meta charset="UTF-8">
 	<title>wrenjs | foreign method</title>
+	<link rel="stylesheet" href="example.css">
 </head>
 <body>
 <script type="module">
-import * as Wren from "../out/wren.js";
+import Wren from "./wren.js";
 
 await Wren.load();
 
@@ -23,11 +24,11 @@ let vm = self.vm = new Wren.VM({
 });
 
 vm.interpret("main", `
-class Math {
-  foreign static add(a, b)
-}
+	class Math {
+		foreign static add(a, b)
+	}
 
-System.print("Result: %(Math.add(7, 35))")
+	System.print("Result: %(Math.add(7, 35))")
 `);
 </script>
 </body>

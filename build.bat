@@ -5,7 +5,7 @@ if not exist tmp mkdir tmp
 if not exist wren (
 	echo "Installing local Wren source code"
 
-	git clone https://github.com/wren-lang/wren.git --branch 0.4.0
+	git clone https://github.com/wren-lang/wren.git
 
 	cd wren
 	python util/generate_amalgamation.py >wren.c
@@ -21,7 +21,7 @@ if not exist node_modules (
 if not exist emsdk (
 	echo "Installing local emscripten"
 
-	git clone https://github.com/emscripten-core/emsdk.git --branch 2.0.21
+	git clone https://github.com/emscripten-core/emsdk.git
     call emsdk/emsdk.bat install latest
     call emsdk/emsdk.bat activate latest
 )

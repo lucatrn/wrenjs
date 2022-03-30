@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>wrenjs | resolve module</title>
+	<title>wrenjs | load modules</title>
 	<link rel="stylesheet" href="example.css">
 </head>
 <body>
@@ -12,14 +12,18 @@ import Wren from "./wren.js";
 await Wren.load();
 
 let vm = self.vm = new Wren.VM({
-	resolveModuleFn: (importer, name) => importer + "/dog/" + name,
-	loadModuleFn: (name) => `System.print("Hello from ${name}")`,
+	loadModuleFn: name => fetch(name).then(response => response.text()),
 });
 
 vm.interpret("main", `
-	import "home"
-	
-	System.print("Hello from main!!!")
+	import "cthulu.wren" for Cthulu
+
+	class Lovecraft {
+		construct new() {}
+		say() { Cthulu.new().message }
+	}
+
+	System.print(Lovecraft.new().say())
 `);
 </script>
 </body>

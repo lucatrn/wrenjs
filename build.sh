@@ -6,7 +6,7 @@ mkdir -p tmp
 if ! [[ -d "./wren" ]]; then
     echo "Installing local Wren source code"
 
-    git clone https://github.com/wren-lang/wren.git --branch 0.4.0
+    git clone https://github.com/wren-lang/wren.git
 
     cd wren
     python3 util/generate_amalgamation.py > wren.c
@@ -22,7 +22,7 @@ fi
 if ! [[ -d "./emsdk" ]]; then
     echo "Installing local emscripten"
 
-    git clone https://github.com/emscripten-core/emsdk.git --branch 2.0.21
+    git clone https://github.com/emscripten-core/emsdk.git
     ./emsdk/emsdk install latest
     ./emsdk/emsdk activate latest
 fi
