@@ -12,7 +12,7 @@ Requires two files:
 ### Example
 
 ```js
-import * as Wren from "./wren.js";
+import Wren from "./wren.js";
 
 await Wren.load();
 

@@ -20,7 +20,7 @@ export let ErrorType = {
 	STACK_TRACE:  2,
 };
 
-export let Result = {
+export let InterpretResult = {
 	SUCCESS:        0,
 	COMPILE_ERROR:  1,
 	RUNTIME_ERROR:  2,
@@ -573,7 +573,7 @@ export default {
 	load: load,
 	getVersionNumber: getVersionNumber,
 	ErrorType: ErrorType,
-	Result: Result,
+	InterpretResult: InterpretResult,
 	Type: Type,
 	VM: VM,
 	defaultConfig: defaultConfig,

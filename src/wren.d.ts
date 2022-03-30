@@ -13,6 +13,8 @@ export function getVersionNumber(): number;
 
 /**
  * A single virtual machine for executing Wren code.
+ * 
+ * Wren has no global state, so all state stored by a running interpreter lives here.
  */
 export class VM {
 	readonly config: VMConfiguration
@@ -326,7 +328,7 @@ export interface VMConfiguration {
 	 * 
 	 * By default {@link VM} does not handle importing modules.
 	 */
-	loadModuleFn: (name: string) => (string | Promise<string> | null | undefined);
+	loadModuleFn: (name: string) => (string | null | undefined | Promise<string | null | undefined | void>);
 
 	/**
 	 * The callback Wren uses to find a foreign method and bind it to a class.
@@ -458,12 +460,40 @@ export enum Type {
  */
 export type Handle = number;
 
-export default {
-	load: load,
-	getVersionNumber: getVersionNumber,
-	ErrorType: ErrorType,
-	Result: Result,
-	Type: Type,
-	VM: VM,
-	defaultConfig: defaultConfig,
+/**
+ * Default export that has all exported JavaScript APIs.
+ */
+declare const Wren: {
+	load: typeof load;
+	getVersionNumber: typeof getVersionNumber;
+
+	/**
+	 * The type of error returned by the {@link VM}.
+	 */
+	ErrorType: typeof ErrorType;
+
+	/**
+	 * The result of a VM interpreting wren source.
+	 */
+	InterpretResult: typeof InterpretResult;
+
+	/**
+	 * The type of an object stored in a slot.
+	 * 
+	 * This is not necessarily the object's *class*, but instead its low level representation type.
+	 */
+	Type: typeof Type;
+
+	/**
+	 * A single virtual machine for executing Wren code.
+	 * 
+	 * Wren has no global state, so all state stored by a running interpreter lives here.
+	 */
+	VM: typeof VM,
+
+	/**
+	 * The default config used when constructing new {@link VM}s.
+	 */
+	defaultConfig: VMConfiguration,
 };
+export default Wren;
