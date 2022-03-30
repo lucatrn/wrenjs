@@ -6,24 +6,35 @@
 	<link rel="stylesheet" href="example.css">
 </head>
 <body>
+<!--#include sonic.wren-->
 <script type="module">
 import Wren from "./wren.js";
 
 await Wren.load();
 
 let vm = self.vm = new Wren.VM({
-	loadModuleFn: name => fetch(name).then(response => response.text()),
+	loadModuleFn: async (name) => {
+		// Get file text using fetch.
+		let response = await fetch(name);
+		if (response.ok) {
+			return response.text();
+		} else {
+			throw `Failed to get module ${name}: HTTP ${response.status} ${response.statusText}`;
+		}
+	}
 });
 
 vm.interpret("main", `
-	import "cthulu.wren" for Cthulu
-
-	class Lovecraft {
-		construct new() {}
-		say() { Cthulu.new().message }
+	import "sonic.wren" for Sonic
+	
+	class SonicFan {
+		static says { Sonic.says }
 	}
 
-	System.print(Lovecraft.new().say())
+	System.print(SonicFan.says)
+
+	// // Test our error handler.
+	// import "shadow.wren" for Shadow
 `);
 </script>
 </body>

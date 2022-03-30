@@ -9,11 +9,17 @@
 <script type="module">
 import  Wren from "./wren.js";
 
+// In this example we make our own class [Bytes] which stores 0 to 255 bytes.
+// We'll store it in Emscripten memory by telling Wren to allocate us 1 + n bytes.
+
 await Wren.load();
 
-// In this example we make our own class [Bytes] which stores 0 to 255 bytes.
-// We'll store the values in Emscripten memory by telling Wren to allocate
-// 1 + n bytes for us.
+// Heap helper
+function getHeapBytes(vm, ptr) {
+	let u8 = new Uint8Array(vm.heap, ptr);
+	let size = u8[0];
+	return u8.subarray(1, 1 + size);
+}
 
 let vm = self.vm = new Wren.VM({
 	// Define the class itself.
@@ -23,42 +29,39 @@ let vm = self.vm = new Wren.VM({
 				allocate: (vm) => {
 					let size = vm.getSlotDouble(1);
 
-					// The layout will is [ length, v0, v1, v2, ... ].
 					let ptr = vm.setSlotNewForeign(0, 0, size + 1);
 					
 					let u8 = new Uint8Array(vm.heap, ptr);
 					u8[0] = size;
 					u8 = u8.subarray(1, 1 + size);
 					u8.fill(0);
-
-					console.log("new bytes", u8.slice());
-				},
-				finalize: (ptr) => {
-					console.log("destroy bytes!");
-				},
+				}
 			};
-		} else {
-			console.log(`unhandled foreignClass ${mod} ${cls}`);
 		}
 	},
 	// Define methods on the class.
 	bindForeignMethodFn: (mod, cls, isStatic, signature) => {
-		if (mod === "main" && cls === "Bytes" && !isStatic && signature === "setValue(_,_)") {
+		if (mod === "main" && cls === "Bytes" && !isStatic && signature === "[_]") {
 			return (vm) => {
 				let ptr = vm.getSlotForeign(0);
 
-				let u8 = new Uint8Array(vm.heap, ptr);
-				let size = u8[0];
-				u8 = u8.subarray(1, 1 + size);
+				let u8 = getHeapBytes(vm, ptr);
+
+				let index = vm.getSlotDouble(1);
+
+				vm.setSlotDouble(0, u8[index]);
+			};
+		}
+		if (mod === "main" && cls === "Bytes" && !isStatic && signature === "[_]=(_)") {
+			return (vm) => {
+				let ptr = vm.getSlotForeign(0);
+
+				let u8 = getHeapBytes(vm, ptr);
 
 				let index = vm.getSlotDouble(1);
 				let value = vm.getSlotDouble(2);
 
-				if (index >= 0 && index < size) {
-					u8[index] = value;
-
-					console.log("update bytes", u8.slice());
-				}
+				u8[index] = value;
 			};
 		}
 	},
@@ -68,20 +71,18 @@ vm.interpret("main", `
 	foreign class Bytes {
 		construct new(size) {}
 
-		foreign setValue(index, value)
+		foreign [i]
+		foreign [i]=(value)
 	}
 
-	// Make 4 bytes and put some numbers in them.
 	var b = Bytes.new(4)
-	b.setValue(0, 1)
-	b.setValue(1, 2)
-	b.setValue(2, 3)
-	b.setValue(3, 4)
-	b = null
-`);
+	b[0] = 5
+	b[1] = 7
+	b[2] = 6
+	b[3] = 9
 
-// Trigger finalizer for our object.
-vm.collectGarbage();
+	for (i in 0..3) System.print("%(i): %(b[i])")
+`);
 </script>
 </body>
 </html>

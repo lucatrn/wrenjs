@@ -77,7 +77,53 @@ export class VM {
 	 * @returns {string}
 	 */
 	_loadModule(name) {
-		return this.config.loadModuleFn(name);
+		let source = this.config.loadModuleFn(name);
+
+		if (source && source.then) {
+			// Handle Promise<string>
+			//
+			// Need to do extra work since C API expects sync source resolution, and WASM can't natively block on Promises.
+			//
+			// The solutions I've considered are:
+			//
+			// 1. Emscripten Asyncify.
+			//      Works but has considerable size + speed impacts.
+			//
+			// 2. Re-write Wren to use a callback approach
+			//      Problably the most performant option, but then we'd have a dependency on a fork of Wren and it's details.
+			//
+			// 3. Use `Fiber.suspend()` to block the Wren script until the source is loaded.
+			//      This feels pretty hacky, but seems to work well?
+			//      Although, this is actually a nice demonstration of Fibers' usefulness!
+			//
+			// I've gone with the last option since it's the simplest and has minimal performance impact.
+
+			// Store a reference to to module Fiber in variable `__self`, then suspend.
+			// (We want this variable name to be unusual, as to not be shadowed accidently by actual code).
+			// Once we get the source, we interpret it in the same module name.
+			// The scripts variables will still be put into same Module's context, but it'll be running in a seprate Fiber.
+			source.then(resolvedSource => {
+				if (resolvedSource == null) {
+					// No loaded source is normally an error, but to Wren the script successfully loaded!
+					// So send a fake version of the error back to the original Fiber.
+					resolvedSource = `self__.transferError(${stringToWrenString(`Could not load module '${name}'`)})`;
+				} else {
+					// Run script and then transfer back to original Fiber at end.
+					resolvedSource += "\nself__.transfer()";
+				}
+
+				this.interpret(name, resolvedSource);
+			}, error => {
+				console.warn(`Error loading module source for "${name}"`, error);
+
+				// Need to send promise errors back to original Fiber.
+				this.interpret(name, `self__.transferError(${stringToWrenString(String(error))})`);
+			});
+
+			return "var self__=Fiber.current\nFiber.suspend()\nself__=null";
+		}
+
+		return source;
 	}
 
 	/**
@@ -461,6 +507,23 @@ export class VM {
 	}
 }
 
+function stringToWrenString(s) {
+	let r = '"';
+
+	for (let i = 0; i < s.length; i++) {
+		let c = s[i];
+		if (c === "\\") {
+			r += "\\\\";
+		} else if (c === "%" || c === '"') {
+			r += "\\" + c;
+		} else {
+			r += c;
+		}
+	}
+
+	return r + '"';
+}
+
 export let defaultConfig = {
 	resolveModuleFn     : defaultResolveModuleFn,
 	loadModuleFn        : defaultLoadModuleFn,
@@ -474,7 +537,7 @@ function defaultResolveModuleFn(importer, name) {
 	return name;
 }
 
-function defaultLoadModuleFn(name) {
+async function defaultLoadModuleFn(name) {
 	return null;
 }
 
@@ -490,14 +553,17 @@ function defaultWriteFn(line) {
 	console.log("WREN: " + line);
 }
 
-function defaultErrorFn(errorType, moduleName, line, msg) {
+function defaultErrorFn(errorType, moduleName, line, message) {
 	let s;
 	if (errorType === 0) {
-		s = "[" + moduleName + " line " + line + "] [Error] " + msg + "\n";
+		// Compile Error
+		s = `Compile Error [${moduleName}:${line}]: ${message}`;
 	} else if (errorType === 1) {
-		s = "[" + moduleName + " line " + line + "] in " + msg + "\n";
+		// Runtime Error
+		s = `Error: ${message}`;
 	} else if (errorType === 2) {
-		s = "[Runtime Error] " + msg + "\n";
+		// Stack strack
+		s = `at ${message} ${moduleName}:${line}`;
 	}
 	console.error("WREN: " + s);
 	return s;

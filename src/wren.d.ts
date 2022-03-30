@@ -1,6 +1,6 @@
 
 /**
- * Asyncronusly loads the Wren WASM code, if not loaded alreadly.
+ * Asynchronously loads the Wren WASM code, if not loaded alreadly.
  * 
  * Must be called before the {@link VM} is used.
  */
@@ -296,23 +296,16 @@ export interface VMConfiguration {
 	 * module that contains the import and the import string. The host app can
 	 * look at both of those and produce a new "canonical" string that uniquely
 	 * identifies the module. This string is then used as the name of the module
-	 * going forward. It is what is passed to [loadModuleFn], how duplicate
+	 * going forward. It is what is passed to {@link loadModuleFn}, how duplicate
 	 * imports of the same module are detected, and how the module is reported in
 	 * stack traces.
 	 * 
-	 * If you leave this function NULL, then the original import string is
-	 * treated as the resolved string.
-	 * 
-	 * If an import cannot be resolved by the embedder, it should return NULL and
+	 * If an import cannot be resolved by the embedder, it should return `null` and
 	 * Wren will report that as a runtime error.
 	 * 
-	 * Wren will take ownership of the string you return and free it for you, so
-	 * it should be allocated using the same allocation function you provide
-	 * above.
-	 * 
-	 * Defaults to the function `(importer, name) => name`.
+	 * By default {@link VM} just returns the `name` as is.
 	 */
-	resolveModuleFn: (importer: string, name: string) => string;
+	resolveModuleFn: (importer: string, name: string) => (string | null | undefined);
 	
 	/**
 	 * The callback Wren uses to load a module's source code.
@@ -331,7 +324,7 @@ export interface VMConfiguration {
 	 * If a module with the given name could not be found by the embedder, it
 	 * should return `null` and Wren will report that as a runtime error.
 	 * 
-	 * By default this always returns `null`
+	 * By default {@link VM} does not handle importing modules.
 	 */
 	loadModuleFn: (name: string) => (string | Promise<string> | null | undefined);
 
@@ -373,11 +366,18 @@ export interface VMConfiguration {
 	/**
 	 * The callback Wren uses to report errors.
 	 * 
-	 * When an error occurs, this will be called with the module name, line
-	 * number, and an error message. If this is `NULL`, Wren doesn't report any
-	 * errors.
+	 * An error detected during compile time is reported by calling this once with
+	 * `type` {@link ErrorType.COMPILE}, the resolved name of the `module` and `line`
+	 * where the error occurs, and the compiler's error `message`.
+	 *
+	 * A runtime error is reported by calling this once with `type`
+	 * {@link ErrorType.RUNTIME}, no `module` or `line`, and the runtime error's
+	 * `message`. After that, a series of `type` {@link ErrorType.STACK_TRACE} calls are
+	 * made for each line in the stack trace. Each of those has the resolved
+	 * `module` and `line` where the method or function is defined and `message` is
+	 * the name of the method or function.
 	 * 
-	 * By default {@link VM} just prints the information via `console.warn()`.
+	 * By default {@link VM} just prints the information via `console.error()`.
 	 */
 	errorFn: (errorType: ErrorType, moduleName: string, line: number, message: string) => void;
 }

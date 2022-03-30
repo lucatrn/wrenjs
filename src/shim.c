@@ -30,7 +30,7 @@ WrenLoadModuleResult shimLoadModuleFn(WrenVM* vm, const char* name) {
 	char* source = (char*)EM_ASM_INT({
 		return mallocString(
 			Module._VMs[$0]._loadModule(UTF8ToString($1))
-		)
+		);
 	}, vm, name);
 
 	if (source) {
