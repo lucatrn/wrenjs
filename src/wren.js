@@ -558,7 +558,7 @@ function stackAllocUTF8ArrayAsCString(src) {
 	HEAPU8.set(src, ptr);
 
 	if (!nullTerminated) {
-		HEAPU8[ptr + len] = 0;
+		HEAPU8[ptr + len - 1] = 0;
 	}
 
 	return ptr;
