@@ -1,11 +1,13 @@
 import moduleFactory from '../tmp/wren.js';
 
 let Module;
+let HEAPU8;
 
 export async function load() {
 	if (!Module) {
 		Module = {};
 		Module = await moduleFactory();
+		HEAPU8 = Module.HEAPU8;
 		Module._VMs = {};
 	}
 }
@@ -55,7 +57,7 @@ export class VM {
 	}
 
 	get Module() { return Module; }
-	get heap() { return Module.HEAP8.buffer; }
+	get heap() { return HEAPU8.buffer; }
 
 	// // Since these are memory aligned, are they guaranteed to work with Wren's memory?
 	// get getValue() { return Module.getValue; }
@@ -212,11 +214,28 @@ export class VM {
 	}
 
 	interpret(moduleName, src) {
-		return Module.ccall('wrenInterpret',
+		let stack = 0;
+
+		let srcType;
+		if (typeof src === "string") {
+			srcType = "string";
+		} else {
+			stack = Module.stackSave();
+			src = stackAllocUTF8ArrayAsCString(src);
+			srcType = "number";
+		}
+
+		let result = Module.ccall('wrenInterpret',
 			'number',
-			['number', 'string', 'string'],
+			['number', "string", srcType],
 			[this._ptr, moduleName, src]
 		);
+
+		if (stack) {
+			Module.stackRestore(stack);
+		}
+
+		return result;
 	}
 
 	makeCallHandle(signature) {
@@ -329,6 +348,10 @@ export class VM {
 	}
 
 	setSlotBytes(slot, bytes, length) {
+		if (length == null) {
+			length = bytes.byteLength;
+		}
+
 		Module.ccall('wrenSetSlotBytes',
 			null,
 			['number', 'number', 'array', 'number'],
@@ -377,11 +400,26 @@ export class VM {
 	}
 
 	setSlotString(slot, text) {
+		let stack = 0;
+
+		let textType;
+		if (typeof text === "string") {
+			textType = "string";
+		} else {
+			stack = Module.stackSave();
+			text = stackAllocUTF8ArrayAsCString(text);
+			textType = "number";
+		}
+
 		Module.ccall('wrenSetSlotString',
 			null,
-			['number', 'number', 'string'],
+			['number', 'number', textType],
 			[this._ptr, slot, text]
 		);
+
+		if (stack) {
+			Module.stackRestore(stack);
+		}
 	}
 
 	setSlotHandle(slot, handle) {
@@ -505,6 +543,25 @@ export class VM {
 			[this._ptr, slot]
 		);
 	}
+}
+
+function stackAllocUTF8ArrayAsCString(src) {
+	if (src instanceof ArrayBuffer) {
+		src = new Uint8Array(src);
+	}
+
+	let nullTerminated = src[src.length - 1] === 0;
+	let len = nullTerminated ? src.length : src.length + 1;
+	
+	let ptr = Module.stackAlloc(len);
+
+	HEAPU8.set(src, ptr);
+
+	if (!nullTerminated) {
+		HEAPU8[ptr + len] = 0;
+	}
+
+	return ptr;
 }
 
 function stringToWrenString(s) {
