@@ -48,9 +48,9 @@ call emcc -DWREN_OPT_RANDOM -DWREN_OPT_META ^
 
 echo Building JavaScript
 
-call npx rollup src/wren.js --file tmp/wren-bundle.js --format esm --name "Wren"
+call rollup src/wren.js --file tmp/wren-bundle.js --format esm --name "Wren"
 
-call terser -o out/wren.js -c -m -- tmp/wren-bundle.js
+call terser -o out/wren.js -c -m --module -- tmp/wren-bundle.js
 
 move tmp\wren.wasm out
 copy src\wren.d.ts out

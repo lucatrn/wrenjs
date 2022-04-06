@@ -47,9 +47,9 @@ emcc -DWREN_OPT_RANDOM -DWREN_OPT_META \
     --pre-js src/wren-asm-common.js \
     -Werror --memory-init-file 0 \
 
-npx rollup ./src/wren.js --file ./tmp/wren-bundle.js --format esm --name "Wren"
+rollup ./src/wren.js --file ./tmp/wren-bundle.js --format esm --name "Wren"
 
-terser -o ./out/wren.js -c -m -- ./tmp/wren-bundle.js
+terser -o ./out/wren.js -c -m --module -- ./tmp/wren-bundle.js
 
 mv tmp/wren.wasm out
 cp src/wren.d.ts out
