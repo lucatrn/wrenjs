@@ -27,7 +27,7 @@ The JavaScript API is documented by [wren.d.ts](src/wren.d.ts).
 
 The JavaScript API closely matches the C API, so the [official Wren Embedding guide](https://wren.io/embedding/) should be useful too.
 
-For examples see [the example folder](example).
+[See here for live examples](https://luca.games/wrenjs/example/hello-world.html).
 
 ## Build Instructions
 
