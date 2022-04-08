@@ -11,6 +11,7 @@ let examples = [
 	"resolve-module",
 	"foreign-method",
 	"foreign-class",
+	"foreign-class-super",
 ];
 
 let elements = [];
@@ -144,8 +145,6 @@ async function loadScripts() {
 	await import("https://unpkg.com/prismjs@1.27.0/plugins/autoloader/prism-autoloader.min.js");
 
 	self.Prism.plugins.autoloader.languages_path = "https://unpkg.com/prismjs@1.27.0/components/";
-
-	console.log(extraStyleCodeElements);
 
 	for (let p of extraStyleCodeElements) {
 		self.Prism.highlightElement(await p);

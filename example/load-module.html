@@ -13,14 +13,21 @@ import Wren from "./wren.js";
 await Wren.load();
 
 let vm = self.vm = new Wren.VM({
-	loadModuleFn: async (name) => {
-		// Get file text using fetch.
-		let response = await fetch(name);
-		if (response.ok) {
-			return response.text();
-		} else {
-			throw `Failed to get module ${name}: HTTP ${response.status} ${response.statusText}`;
+	loadModuleFn: (name) => {
+		// Handle invalid import names.
+		if (name.includes("shadow")) {
+			return null;
 		}
+
+		// Get file text using fetch.
+		return fetch(name).then(response => {
+			if (response.ok) {
+				// `response.text()` works too, but it's a bit slower.
+				return response.arrayBuffer();
+			} else {
+				throw `Failed to get module ${name}: HTTP ${response.status} ${response.statusText}`;
+			}
+		});
 	}
 });
 
@@ -33,8 +40,8 @@ vm.interpret("main", `
 
 	System.print(SonicFan.says)
 
-	// // Test our error handler.
-	// import "shadow.wren" for Shadow
+	// Let's make an invalid import to see what happens!
+	import "shadow.wren" for Shadow
 `);
 </script>
 </body>

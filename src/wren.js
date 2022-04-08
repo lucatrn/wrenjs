@@ -108,13 +108,12 @@ export class VM {
 				if (resolvedSource == null) {
 					// No loaded source is normally an error, but to Wren the script successfully loaded!
 					// So send a fake version of the error back to the original Fiber.
-					resolvedSource = `self__.transferError(${stringToWrenString(`Could not load module '${name}'`)})`;
+					this.interpret(name, `self__.transferError(${stringToWrenString(`Could not load module '${name}'`)})`);
 				} else {
 					// Run script and then transfer back to original Fiber at end.
-					resolvedSource += "\nself__.transfer()";
+					this.interpret(name, resolvedSource);
+					this.interpret(name, "self__.transfer()");
 				}
-
-				this.interpret(name, resolvedSource);
 			}, error => {
 				console.warn(`Error loading module source for "${name}"`, error);
 
