@@ -296,12 +296,23 @@ export class VM {
 		);
 	}
 
-	getSlotBytes(slot, length) {
+	getSlotBytes(slot) {
+		// Length is provided through an int pointer.
+		// So we use a stack allocated int for that!
+
+		let stack = Module.stackSave();
+
+		let lenPtr = Module.stackAlloc(4);
+
 		let ptr = Module.ccall('wrenGetSlotBytes',
 			'number',
 			['number', 'number', 'number'],
-			[this._ptr, slot, length]
+			[this._ptr, slot, lenPtr]
 		);
+
+		let length = new Int32Array(this.heap, lenPtr)[0];
+
+		Module.stackRestore(stack);
 
 		return new Uint8Array(this.heap, ptr, length);
 	}
@@ -353,7 +364,7 @@ export class VM {
 
 		Module.ccall('wrenSetSlotBytes',
 			null,
-			['number', 'number', 'array', 'number'],
+			['number', 'number', typeof bytes === "number" ? 'number' : 'array', 'number'],
 			[this._ptr, slot, bytes, length]
 		);
 	}

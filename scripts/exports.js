@@ -7,6 +7,8 @@ let lines = wren_h.split('\n');
 
 let functions = [
 	"malloc",
+	"realloc",
+	"free",
 ];
 
 for (let l = 0; l < lines.length; l++) {
