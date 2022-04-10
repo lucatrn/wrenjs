@@ -33,8 +33,14 @@ for /f %%i in ('node scripts/exports.js') do set fn=%%i
 echo:
 echo Building Emscripten
 
-call emcc -DWREN_OPT_RANDOM -DWREN_OPT_META ^
-    wren/wren.c src/shim.c -I wren/src/include -o tmp/wren.js ^
+if not [%1]==[] (
+    echo Including Custom Native Extensions
+	set extraD=-DWRENJS_NATIVE
+	set extraC=%1
+)
+
+call emcc -DWREN_OPT_RANDOM -DWREN_OPT_META %extraD% ^
+    wren/wren.c %extraC% src/shim.c -I wren/src/include -o tmp/wren.js ^
     -O3 -s WASM=1 ^
     -s ASSERTIONS=0 -s ENVIRONMENT='web' ^
     -s MODULARIZE=1 -s EXPORT_ES6=1 ^

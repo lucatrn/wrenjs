@@ -3,6 +3,14 @@
 
 // This C file contains the bindings that connect the world of wren to the world of JavaScript.
 
+#ifdef WRENJS_NATIVE
+
+	WrenForeignMethodFn bindForeignMethod(WrenVM* vm, const char* module, const char* className, bool isStatic, const char* signature);
+
+	WrenForeignClassMethods bindForeignClass(WrenVM* vm, const char* module, const char* className);
+
+#endif
+
 // The following are wrappers for functions normally attached to a WrenConfiguration.
 
 // resolveModuleFn
@@ -45,6 +53,13 @@ WrenLoadModuleResult shimLoadModuleFn(WrenVM* vm, const char* name) {
 // bindForeignMethodFn
 
 WrenForeignMethodFn shimBindForeignMethodFn(WrenVM* vm, const char* module, const char* className, bool isStatic, const char* signature) {
+	#ifdef WRENJS_NATIVE
+
+		WrenForeignMethodFn fn = bindForeignMethod(vm, module, className, isStatic, signature);
+		if (fn) return fn;
+
+	#endif
+
 	return (WrenForeignMethodFn)EM_ASM_INT({
 		return Module._VMs[$0]._bindForeignMethod(
 			UTF8ToString($1),
@@ -63,9 +78,17 @@ void defaultAllocator(WrenVM* vm) {
 }
 
 WrenForeignClassMethods shimBindForeignClassFn(WrenVM* vm, const char* module, const char* className) {
+	WrenForeignClassMethods result;
+
+	#ifdef WRENJS_NATIVE
+
+		result = bindForeignClass(vm, module, className);
+		if (result.allocate) return result;
+
+	#endif
+
 	// We need to get two pointers, so we'll pass a reference to the struct and
 	// set the pointers through JavaScript.
-	WrenForeignClassMethods result;
 	result.allocate = defaultAllocator;
 	result.finalize = NULL;
 

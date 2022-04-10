@@ -50,3 +50,32 @@ Run `build.sh`.
 ### Windows
 
 Run `build.bat`.
+
+## Custom C Extensions
+
+
+You can provide custom C code to provide foreign classes and methods, which works in conjucation with the JavaScript API.
+
+Just provide the path to your C file as the first argument to the build script.
+
+```
+build.bat my_extensions.c
+```
+
+```c
+// my_extensions.c
+
+#include "wren.h"
+
+// Return with [WrenForeignClassMethods.allocator] set to null to use JavaScript binder.
+WrenForeignClassMethods bindForeignClass(WrenVM* vm, const char* module, const char* className) {
+	// ...
+}
+
+// Return [null] to use JavaScript binder.
+WrenForeignMethodFn bindForeignMethod(WrenVM* vm, const char* module, const char* className, bool isStatic, const char* signature) {
+	// ...
+}
+```
+
+> This script option is currently windows only.
